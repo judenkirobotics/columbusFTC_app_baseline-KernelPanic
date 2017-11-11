@@ -35,7 +35,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
@@ -48,7 +50,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 public class timeSliceOpMode extends LinearOpMode {
 
     /* Declare OpMode members. */
-    HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+    KernerlPanic        robot   = new KernelPanic();   // Use a Pushbot's hardware
     private ElapsedTime     runtime = new ElapsedTime();
 
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
@@ -58,6 +60,30 @@ public class timeSliceOpMode extends LinearOpMode {
                                                       (WHEEL_DIAMETER_INCHES * 3.1415);
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
+
+    /* Public OpMode members. */
+    public DcMotor  leftDrive   = null;
+    public DcMotor  rightDrive  = null;
+    public DcMotor  liftMotor     = null;
+
+    // Define class members
+    public Servo    leftClamp    = null;
+    public Servo    rightClamp   = null;
+
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  1.0;     // Maximum rotational position
+    static final double MIN_POS     =  0.0;     // Minimum rotational position
+
+    double          clampOffset      = 0;                       // Servo mid position
+    final double    CLAMP_SPEED      = 0.02 ;                   // sets rate to move servo
+
+    double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
+    boolean rampUp;
+
+    {
+        rampUp = true;
+    }
 
     @Override
     public void runOpMode() {
@@ -125,6 +151,7 @@ public class timeSliceOpMode extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             CurrentTime = System.currentTimeMillis();
@@ -140,6 +167,16 @@ public class timeSliceOpMode extends LinearOpMode {
 
             if (CurrentTime - LastServo > SERVOPERIOD) {
                 LastServo = CurrentTime;
+                // Use gamepad left & right Bumpers to open and close the claw
+                if (gamepad1.a)
+                    clampOffset += CLAMP_SPEED;
+                else if (gamepad1.b)
+                    clampOffset -= CLAMP_SPEED;
+
+                // Move both servos to new position.  Assume servos are mirror image of each other.
+                clampOffset = Range.clip(clampOffset, -0.5, 0.5);
+                robot.leftClamp.setPosition(robot.MID_SERVO + clampOffset);
+                robot.rightClamp.setPosition(robot.MID_SERVO - clampOffset);
             }
 
             if (CurrentTime - LastNav > NAVPERIOD) {
@@ -148,6 +185,10 @@ public class timeSliceOpMode extends LinearOpMode {
 
             if (CurrentTime - LastMotor > MOTORPERIOD){
                 LastMotor = CurrentTime;
+                if (gamepad1.dpad_up)
+                    liftMotor.setPower(0.5);
+                else if (gamepad1.dpad_down)
+                    liftMotor.setPower(-0.5);
             }
 
             if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {

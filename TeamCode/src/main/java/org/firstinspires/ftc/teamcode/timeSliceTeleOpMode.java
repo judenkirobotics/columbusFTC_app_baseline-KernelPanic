@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
@@ -60,6 +61,17 @@ public class timeSliceTeleOpMode extends LinearOpMode {
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
 
+
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  1.0;     // Maximum rotational position
+    static final double MIN_POS     =  0.0;     // Minimum rotational position
+
+    // Define class members
+    Servo   servo;
+    double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
+    boolean rampUp = true;
+
     @Override
     public void runOpMode() {
 
@@ -75,6 +87,22 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
 
         ElapsedTime runtime = new ElapsedTime();
+
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        double leftPower = 0;
+        double rightPower = 0;
+
         DcMotor leftMotor = null;
         DcMotor rightMotor = null;
 
@@ -149,11 +177,23 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
             if (CurrentTime - LastMotor > MOTORPERIOD){
                 LastMotor = CurrentTime;
+                // Send calculated power to wheels
+                leftDrive.setPower(leftPower);
+                rightDrive.setPower(rightPower);
             }
 
             if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
                 LastTelemetry = CurrentTime;
                 telemetry.update();
+
+
+            }
+            if (CurrentTime - LastController > CONTROLLERPERIOD){
+                LastController = CurrentTime;
+                double drive = -gamepad1.left_stick_y;
+                double turn = gamepad1.right_stick_x;
+                leftPower = Range.clip(drive + turn, -1.0, 1.0);
+                rightPower = Range.clip(drive - turn, -1.0, 1.0);
             }
         }
         //sleep(1000);     // pause for servos to move
