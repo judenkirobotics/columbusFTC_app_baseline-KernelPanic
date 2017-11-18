@@ -32,40 +32,40 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
+//import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 /**
 
  */
 
-@Autonomous(name="Time Slide Op Mode", group="Pushbot")
+//@Autonomous(name="Time Slide Op Mode", group="Pushbot")
+    @TeleOp(name = "Time Slice Op Mode", group = "Pushbot")
 //@Disabled
 public class timeSliceOpMode extends LinearOpMode {
 
     /* Declare OpMode members. */
-    KernerlPanic        robot   = new KernelPanic();   // Use a Pushbot's hardware
-    private ElapsedTime     runtime = new ElapsedTime();
+    private KernelPanic        robot   = new KernelPanic();   // Use a Pushbot's hardware
 
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+    private static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
+    private static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
+    private static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    private static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                       (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.5;
+    private static final double     DRIVE_SPEED             = 0.6;
+    private static final double     TURN_SPEED              = 0.5;
 
 
     /* Public OpMode members. */
-    public DcMotor  leftDrive   = null;
-    public DcMotor  rightDrive  = null;
-    public DcMotor  liftMotor     = null;
+    private  DcMotor  leftDrive   = null;
+    private  DcMotor  rightDrive  = null;
+    private  DcMotor  liftMotor     = null;
 
     // Define class members
     public Servo    leftClamp    = null;
@@ -78,6 +78,13 @@ public class timeSliceOpMode extends LinearOpMode {
 
     double          clampOffset      = 0;                       // Servo mid position
     final double    CLAMP_SPEED      = 0.02 ;                   // sets rate to move servo
+    final long SENSORPERIOD= 50;
+    final long ENCODERPERIOD = 50;
+    final long SERVOPERIOD = 50;
+    final long NAVPERIOD = 50;
+    final long MOTORPERIOD = 50;
+    final long CONTROLLERPERIOD = 50;
+    final long TELEMETRYPERIOD = 1000;
 
     double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
     boolean rampUp;
@@ -110,21 +117,12 @@ public class timeSliceOpMode extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        // ****************************************************************
-        //  Post Initialization
-
+        runtime.reset();
 
         /***************************************************************************
          *            Everything below here  \\ press START           *
          ***************************************************************************/
-
         //@Override
-        final long SENSORPERIOD= 50;
-        final long ENCODERPERIOD = 50;
-        final long SERVOPERIOD = 50;
-        final long NAVPERIOD = 50;
-        final long MOTORPERIOD = 50;
-        final long TELEMETRYPERIOD = 1000;
 
         long CurrentTime=System.currentTimeMillis();
 
@@ -133,76 +131,140 @@ public class timeSliceOpMode extends LinearOpMode {
         long LastServo = CurrentTime+10;
         long LastNav = CurrentTime+15;
         long LastMotor = CurrentTime+20;
+        long LastController = CurrentTime + 7;
         long LastTelemetry = CurrentTime+17;
 
-        //int overRun1 = 0;
-        //int overRun2 = 0;
-        //int skipped0 = 0;
-        //int skipped1 = 0;
-        //int skipped2 = 0;
-        //int accumTurn = 0;
+        // variables for controller inputs.
+        float g1_leftX;
+        float g1_LeftY;
+        float g1_RightX;
+        float g1_RightY;
+        boolean g1_A;
+        boolean g1_B;
+
+        // variables to support clamp and lift
+        long clampStart = 0;
+        long liftStart = 0;
 
         //double legTime = CurrentTime;
-        double lastTelemetry = CurrentTime;
+        //double lastTelemetry = CurrentTime;
         double timeLeft = 0;
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-
-        // Wait for the game to start (driver presses PLAY)
-        waitForStart();
-        runtime.reset();
-
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             CurrentTime = System.currentTimeMillis();
 
             //Loop For Timing System
+            /* ***************************************************
+             *                SENSORS
+             *        INPUTS: Raw Sensor Values
+             *       OUTPUTS: parameters containing sensor values*
+             ****************************************************/
             if (CurrentTime - LastSensor > SENSORPERIOD) {
                 LastSensor = CurrentTime;
-                if (gamepad1.a)
-                    clampOffset += CLAMP_SPEED;
 
-                else if (gamepad1.b)
-                    clampOffset -= CLAMP_SPEED;
-
-            if (CurrentTime - LastEncoderRead > ENCODERPERIOD) {
-                LastEncoderRead = CurrentTime;
-
-                if // Step through each leg of the path,
-                // Note: Reverse movement is obtained by setting a negative distance (not speed)
-                encoderDrive(DRIVE_SPEED,  48,  48, 5.0);  // S1: Forward 47 Inches with 5 Sec timeout
-                encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
-                encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
             }
 
-            if (CurrentTime - LastServo > SERVOPERIOD) {
+
+            /* ***************************************************
+             *                ENCODERS                          *
+             ****************************************************/
+            if (CurrentTime - LastEncoderRead > ENCODERPERIOD) {
+                LastEncoderRead = CurrentTime;
+               // We want to READ the Encoders here
+               //    ONLY set the motors in motion in ONE place.
+
+
+
+            }
+            /* **************************************************
+             *                Controller INPUT                  *
+             *  INPUTS: raw controller values                   *
+             *  OUTPUTS:
+             *         g1_LeftX    g1_RightX
+             *         g1_LeftY    g1_RightY
+             *         g1_a (gamepad A)
+             *         g1_b (gamepad B)
+             ****************************************************/
+            if (CurrentTime - LastController > CONTROLLERPERIOD) {
+                LastController = CurrentTime;
+                g1_leftX = gamepad1.left_stick_x;
+                g1_LeftY = gamepad1.left_stick_y;
+                g1_RightX = gamepad1.right_stick_x;
+                g1_RightY = gamepad1.right_stick_y;
+
+                g1_A = gamepad1.a;
+                g1_B = gamepad1.b;
+/*  ***********************************************************************
+     ^^^^^^^^^^^^^ ALL OF THE STUFF ABOVE HERE IS READING INPUTS ^^^^^^^^^^^^^^^
+ ***************************************************************************/
+
+
+
+
+/* vvvvvvvvvvvvvvvvvv  THIS SECTION IS MAPPING INPUTS TO OUTPUTS vvvvvvvvvvvvvvvvv*/
+
+            /* **************************************************
+             *                NAV
+             *      Inputs:  Gamepad positions
+             *               Sensor Values (as needed)
+             *      Outputs: Servo and Motor position commands
+             *                         motor
+             ****************************************************/
+                if (CurrentTime - LastNav > NAVPERIOD) {
+                    LastNav = CurrentTime;
+                    // mapping inputs to servo command
+                    if (g1_A) leftClamp = 0;
+                        clampOffset += CLAMP_SPEED;
+
+                    else if (gamepad1.b)
+                        clampOffset -= CLAMP_SPEED;
+                    // mapping inputs to motor commands
+
+                }
+/*  ^^^^^^^^^^^^^^^^  THIS SECTION IS MAPPING INPUTS TO OUTPUTS ^^^^^^^^^^^^^^^*/
+
+
+
+
+/*  ***********************************************************************
+                 ALL OF THE STUFF BELOW HERE IS WRITING OUTPUTS
+ * VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV*/
+
+            /* **************************************************
+             *                SERVO
+             *                Inputs: leftClamp position command
+             *                        rightClamp position command *
+             ****************************************************/
+             if (CurrentTime - LastServo > SERVOPERIOD) {
                 LastServo = CurrentTime;
                 // Use gamepad left & right Bumpers to open and close the thing
                 if (gamepad1.a)
                     clampOffset += CLAMP_SPEED;
-                wa(500);
                         liftMotor.setPower(0.5);
                 else if (gamepad1.b)
                     clampOffset -= CLAMP_SPEED;
-                sleep(1000);
                         liftMotor.setPower(-0.5);
 
                 // Move both servos to new position.  Assume servos are mirror image of each other.
                 clampOffset = Range.clip(clampOffset, -0.5, 0.5);
-                robot.leftClamp.setPosition(robot.MID_SERVO + clampOffset);
-                robot.rightClamp.setPosition(robot.MID_SERVO - clampOffset);
+                leftClamp.setPosition(robot.MID_SERVO + clampOffset);
+                rightClamp.setPosition(robot.MID_SERVO - clampOffset);
             }
 
-            if (CurrentTime - LastNav > NAVPERIOD) {
-                LastNav = CurrentTime;
-            }
 
+            /* ***************************************************
+             *                MOTOR OUTPUT
+             *       Inputs:  Motor power commands
+             *       Outputs: Physical interface to the motors
+             ****************************************************/
             if (CurrentTime - LastMotor > MOTORPERIOD){
                 LastMotor = CurrentTime;
 
 
-          if (gamepad1.left_stick_y)
+          if (gamepad1.left_stick_y )
                 leftDrive.setPower(gamepad1.left_stick_y);
                 rightDrive.setPower(gamepad1.left_stick_y);
 
@@ -210,12 +272,19 @@ public class timeSliceOpMode extends LinearOpMode {
 
 
             }
+
+
+            /* ***************************************************
+             *                TELEMETRY
+             *       Inputs:  telemetry structure
+             *       Outputs: command telemetry output to phone
+             ****************************************************/
+
             if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
                 LastTelemetry = CurrentTime;
                 telemetry.update();
             }
         }
-        //sleep(1000);     // pause for servos to move
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
