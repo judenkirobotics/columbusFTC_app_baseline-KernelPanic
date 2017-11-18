@@ -61,6 +61,7 @@ public class timeSliceOpMode extends LinearOpMode {
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
 
+
     /* Public OpMode members. */
     public DcMotor  leftDrive   = null;
     public DcMotor  rightDrive  = null;
@@ -103,7 +104,7 @@ public class timeSliceOpMode extends LinearOpMode {
         DcMotor leftMotor = null;
         DcMotor rightMotor = null;
 
-        //A Timing System By Jeffrey & Alexis
+        //A Timing System By Katherine Jeffrey,and Alexis
         // long currentThreadTimeMillis (0);
         //
 
@@ -114,7 +115,7 @@ public class timeSliceOpMode extends LinearOpMode {
 
 
         /***************************************************************************
-         *            Everything below here happens after we press START           *
+         *            Everything below here  \\ press START           *
          ***************************************************************************/
 
         //@Override
@@ -159,19 +160,33 @@ public class timeSliceOpMode extends LinearOpMode {
             //Loop For Timing System
             if (CurrentTime - LastSensor > SENSORPERIOD) {
                 LastSensor = CurrentTime;
-            }
+                if (gamepad1.a)
+                    clampOffset += CLAMP_SPEED;
+
+                else if (gamepad1.b)
+                    clampOffset -= CLAMP_SPEED;
 
             if (CurrentTime - LastEncoderRead > ENCODERPERIOD) {
                 LastEncoderRead = CurrentTime;
+
+                if // Step through each leg of the path,
+                // Note: Reverse movement is obtained by setting a negative distance (not speed)
+                encoderDrive(DRIVE_SPEED,  48,  48, 5.0);  // S1: Forward 47 Inches with 5 Sec timeout
+                encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
+                encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
             }
 
             if (CurrentTime - LastServo > SERVOPERIOD) {
                 LastServo = CurrentTime;
-                // Use gamepad left & right Bumpers to open and close the claw
+                // Use gamepad left & right Bumpers to open and close the thing
                 if (gamepad1.a)
                     clampOffset += CLAMP_SPEED;
+                wa(500);
+                        liftMotor.setPower(0.5);
                 else if (gamepad1.b)
                     clampOffset -= CLAMP_SPEED;
+                sleep(1000);
+                        liftMotor.setPower(-0.5);
 
                 // Move both servos to new position.  Assume servos are mirror image of each other.
                 clampOffset = Range.clip(clampOffset, -0.5, 0.5);
@@ -185,12 +200,16 @@ public class timeSliceOpMode extends LinearOpMode {
 
             if (CurrentTime - LastMotor > MOTORPERIOD){
                 LastMotor = CurrentTime;
-                if (gamepad1.dpad_up)
-                    liftMotor.setPower(0.5);
-                else if (gamepad1.dpad_down)
-                    liftMotor.setPower(-0.5);
-            }
 
+
+          if (gamepad1.left_stick_y)
+                leftDrive.setPower(gamepad1.left_stick_y);
+                rightDrive.setPower(gamepad1.left_stick_y);
+
+            else if (gamepad1.left_stick_x)
+
+
+            }
             if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
                 LastTelemetry = CurrentTime;
                 telemetry.update();
