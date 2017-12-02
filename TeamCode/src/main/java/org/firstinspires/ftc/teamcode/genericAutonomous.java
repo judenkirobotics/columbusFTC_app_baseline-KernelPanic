@@ -167,7 +167,7 @@ public class genericAutonomous extends LinearOpMode {
         float rightDriveCmd = 0;
         float riserCmd = 0;
         int[] TurnArray =    {0, 45,  0,   2, 0,0};
-        float[] TurnPower =  {0, 40,  0, -30, 0,0};
+        int[] TurnPower =  {0, 40,  0, -30, 0,0};
         float[] StraightPwr= {25, 0, 30,   0, 0,0};
         int[] StraightDist=  {10, 0, 50,   0, 0,0};
 
@@ -246,50 +246,53 @@ public class genericAutonomous extends LinearOpMode {
              *      Outputs: Servo and Motor position commands
              *                         motor
              ****************************************************/
-                if (CurrentTime - LastNav > NAVPERIOD) {
-                    LastNav = CurrentTime;
-                    boolean stageComplete = false;
-                    // init drive min and max to default values.  We'll reset them to other numbers
-                    // if conditions demand it.
-                    float driveMax = 1;
-                    float driveMin = -1;
-                    float riserMax = 1;
-                    float riserMin = -1;
-                    double riserTarget = 0;
+            if (CurrentTime - LastNav > NAVPERIOD) {
+                LastNav = CurrentTime;
+                boolean stageComplete = false;
+                // init drive min and max to default values.  We'll reset them to other numbers
+                // if conditions demand it.
+                float driveMax = 1;
+                float driveMin = -1;
+                float riserMax = 1;
+                float riserMin = -1;
+                double riserTarget = 0;
 
-                    switch ( CurrentAutoState ) {
-                        case 0,2:
-                            //
-                            stageComplete = myDrive.moveForward(startPos,StraightDist[CurrentAutoState], StraightPwr[CurrentAutoState]);
-                            break;
-                        case 1,3:
-                            stageComplete = myDrive.gyroTurn2(TurnArray[CurrentAutoState], TurnPower[CurrentAutoState]);
-                            break;
-                        case 4:
-                            stageComplete = detectItem();
-                            break
-                        case 5:
-                            stageComplete = moveLever();
-                            break;
-                    }
-                    if (stageComplete) {
-                        startPos = currentPos;
-                        startTime = currentTime;
-                        startHeading = currentHeading;
-                        CurrentAutoState++;
-                    }
-                    // mapping inputs to servo command
+                switch ( CurrentAutoState ) {
+                    case 0: case 2:
+                        //
+                        stageComplete = myDrive.moveForward(startPos,StraightDist[CurrentAutoState], StraightPwr[CurrentAutoState]);
+                        break;
+                    case 1: case 3:
+                        //stageComplete = myDrive.gyroTurn2(TurnArray[CurrentAutoState], TurnPower[CurrentAutoState]);
+                        break;
+                    case 4:
+                        stageComplete = detectItem();
+                        break;
+                    case 5:
+                        stageComplete = moveLever();
+                        break;
+                }
+                if (stageComplete) {
+//                        startPos = currentPos;
+//                        startHeading = currentHeading;
+                    startPos = 0;
+                    startHeading = 0;
+                    startTime = CurrentTime;
+                    CurrentAutoState++;
+                }
+                // mapping inputs to servo command
 
-                    // The ONLY place we set the motor power request. Set them here, and
-                    // we will never have to worry about which set is clobbering the other.
+                // The ONLY place we set the motor power request. Set them here, and
+                // we will never have to worry about which set is clobbering the other.
 
-                    // Servo commands: Clipped and Clamped.
+                // Servo commands: Clipped and Clamped.
 
-                    // motor commands: Clipped & clamped.
-                    leftDriveCmd  = Range.clip((float)0.0,         driveMin, driveMax);
-                    rightDriveCmd = Range.clip((float)0.0,         driveMin, driveMax);
-                    riserCmd      = Range.clip((float)riserTarget, riserMin, riserMax);
-                }                    // END NAVIGATION
+                // motor commands: Clipped & clamped.
+                leftDriveCmd  = Range.clip((float)0.0,         driveMin, driveMax);
+                rightDriveCmd = Range.clip((float)0.0,         driveMin, driveMax);
+                riserCmd      = Range.clip((float)riserTarget, riserMin, riserMax);
+            }
+            // END NAVIGATION
 
 
         /*   ^^^^^^^^^^^^^^^^  THIS SECTION IS MAPPING INPUTS TO OUTPUTS   ^^^^^^^^^^^^^^^*/
@@ -309,13 +312,13 @@ public class genericAutonomous extends LinearOpMode {
              *                        rightClamp position command *
              *                Outputs: Physical write to servo interface.
              ****************************************************/
-                if (CurrentTime - LastServo > SERVOPERIOD) {
-                    LastServo = CurrentTime;
+            if (CurrentTime - LastServo > SERVOPERIOD) {
+                LastServo = CurrentTime;
 
-                    // Move both servos to new position.
-                    leftClamp.setPosition(leftClamp_Cmd);
-                    rightClamp.setPosition(rightClamp_Cmd);
-                }
+                // Move both servos to new position.
+                leftClamp.setPosition(leftClamp_Cmd);
+                rightClamp.setPosition(rightClamp_Cmd);
+            }
 
 
             /* ***************************************************
@@ -323,19 +326,19 @@ public class genericAutonomous extends LinearOpMode {
              *       Inputs:  Motor power commands
              *       Outputs: Physical interface to the motors
              ****************************************************/
-                if (CurrentTime - LastMotor > MOTORPERIOD) {
-                    LastMotor = CurrentTime;
-                    // Yes, we'll set the power each time, even if it's zero.
-                    // this way we don't accidentally leave it somewhere.  Just simpler this way.
-                    /*  Left Drive Motor Power  */
-                    leftDrive.setPower(leftDriveCmd);
+            if (CurrentTime - LastMotor > MOTORPERIOD) {
+                LastMotor = CurrentTime;
+                // Yes, we'll set the power each time, even if it's zero.
+                // this way we don't accidentally leave it somewhere.  Just simpler this way.
+                /*  Left Drive Motor Power  */
+                leftDrive.setPower(leftDriveCmd);
 
-                    /*  Right Drive Motor Power */
-                    rightDrive.setPower(rightDriveCmd);
+                /*  Right Drive Motor Power */
+                rightDrive.setPower(rightDriveCmd);
 
-                    /* Lifter Motor Power   */
-                    riser.setPower(riserCmd);
-                }
+                /* Lifter Motor Power   */
+                riser.setPower(riserCmd);
+            }
 
 
             /* ***************************************************
@@ -344,14 +347,12 @@ public class genericAutonomous extends LinearOpMode {
              *       Outputs: command telemetry output to phone
              ****************************************************/
 
-                if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
-                    LastTelemetry = CurrentTime;
-                    telemetry.update();
-                }
+            if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
+                LastTelemetry = CurrentTime;
+                telemetry.update();
             }
-
-            telemetry.addData("Path", "Complete");
-            telemetry.update();
         }
+        telemetry.addData("Path", "Complete");
+        telemetry.update();
     }
 }

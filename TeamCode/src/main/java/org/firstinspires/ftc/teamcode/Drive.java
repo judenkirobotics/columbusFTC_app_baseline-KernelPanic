@@ -157,8 +157,8 @@ public class Drive {
 
         driveStopTime = time + SystemClock.elapsedRealtime();
         motorsStopped = false;
-
-
+        // once we figure out the encoders, we'll put that in here.
+        return true;
     }
 
     /*
