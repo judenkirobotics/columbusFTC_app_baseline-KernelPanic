@@ -38,7 +38,8 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 @TeleOp(name = "Time Slice Op Mode", group = "HardwarePushbot")
 //@Disabled
 public class timeSliceTeleOpMode extends LinearOpMode {
-
+    //Encoder enc;
+    //enc = new Encoder(0,1,false,Encoder.EncodingType.k4X);
     /* Declare OpMode members. */
     HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
     //   private static final double COUNTS_PER_MOTOR_REV = 1440;    // eg: TETRIX Motor Encoder
@@ -270,7 +271,7 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
                         liftDuration += NAVPERIOD;
                         liftOffDuration = 0;
-                        
+
                         leftClamp_Cmd = LEFTCLAMPED;
                         rightClamp_Cmd = RIGHTCLAMPED;
                         if (liftDuration > CLAMP_MOTION_TIME) {
