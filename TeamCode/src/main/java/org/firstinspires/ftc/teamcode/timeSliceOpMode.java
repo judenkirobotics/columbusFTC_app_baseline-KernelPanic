@@ -48,8 +48,8 @@ import org.firstinspires.ftc.teamcode.KernelPanic;
 
  */
 
-//@Autonomous(name="Time Slide Op Mode", group="Pushbot")
-    @TeleOp(name = "Time Slice Op Mode", group = "Pushbot")
+//@Autonomous(name="Time Slice Op Mode 2", group="Pushbot")
+    //@TeleOp(name = "Time Slice Op Mode 2", group = "HardwarePushbot")
 //@Disabled
 public class timeSliceOpMode extends LinearOpMode {
 
