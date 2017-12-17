@@ -39,7 +39,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 //@Autonomous(name="Pushbot: Auto Drive By Encoder", group="Pushbot")
 
-@Autonomous(name="Time Slide Op Mode", group="Pushbot")
+@Autonomous(name="Generic Autonomous", group="Pushbot")
 @SuppressWarnings("WeakerAccess")
 //@TeleOp(name = "Time Slice Op Mode", group = "HardwarePushbot")
 //@Disabled
@@ -48,9 +48,9 @@ public class genericAutonomous extends LinearOpMode {
     //enc = new Encoder(0,1,false,Encoder.EncodingType.k4X);
     /* Declare OpMode members. */
     HardwarePushbot robot   = new HardwarePushbot();   // Use a Pushbot's hardware
-    DcMotor[] leftMotors = new DcMotor[]{robot.leftDrive};
-    DcMotor[] rightMotors = new DcMotor[]{robot.rightDrive};
-    Drive myDrive = new Drive(leftMotors, rightMotors);
+    //DcMotor[] leftMotors = new DcMotor[]{robot.leftDrive};
+    //DcMotor[] rightMotors = new DcMotor[]{robot.rightDrive};
+    //Drive myDrive = new Drive(leftMotors, rightMotors);
     //   private static final double COUNTS_PER_MOTOR_REV = 1440;    // eg: TETRIX Motor Encoder
     //   private static final double DRIVE_GEAR_REDUCTION = 2.0;     // This is < 1.0 if geared UP
     //   private static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
@@ -61,13 +61,13 @@ public class genericAutonomous extends LinearOpMode {
 
 
     /* Public OpMode members. */
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    private DcMotor riser = null;
+    //private DcMotor leftDrive = null;
+    //private DcMotor rightDrive = null;
+    //private DcMotor riser = null;
 
     // Define class members
-    public Servo leftClamp = null;
-    public Servo rightClamp = null;
+    //public Servo leftClamp = null;
+    //public Servo rightClamp = null;
 
     //  static final double INCREMENT = 0.01;     // amount to slew servo each CYCLE_MS cycle
     //  static final int CYCLE_MS = 50;     // period of each cycle
@@ -159,6 +159,7 @@ public class genericAutonomous extends LinearOpMode {
 
         double leftClamp_Cmd = LEFTUNCLAMPED;
         double rightClamp_Cmd = RIGHTUNCLAMPED;
+        double stageTimer=0;
 
         float startTime = 0;
         int startHeading = 0;
@@ -167,7 +168,7 @@ public class genericAutonomous extends LinearOpMode {
         float rightDriveCmd = 0;
         float riserCmd = 0;
         int[] TurnArray =    {0, 45,  0,   2, 0,0};
-        int[] TurnPower =  {0, 40,  0, -30, 0,0};
+        int[] TurnPower =    {0, 40,  0, -30, 0,0};
         float[] StraightPwr= {25, 0, 30,   0, 0,0};
         int[] StraightDist=  {10, 0, 50,   0, 0,0};
 
@@ -181,7 +182,7 @@ public class genericAutonomous extends LinearOpMode {
         //A Timing System By Katherine Jeffrey,and Alexis
         // long currentThreadTimeMillis (0);
         //
-        int riserZero = riser.getCurrentPosition();
+        int riserZero = robot.pulleyDrive.getCurrentPosition();
 
         // Wait for the game to start (driver presses PLAY)
 
@@ -219,9 +220,9 @@ public class genericAutonomous extends LinearOpMode {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here
                 //    ONLY set the motors in motion in ONE place.
-                rightMotorPos = rightDrive.getCurrentPosition();
-                lefMotorPos = leftDrive.getCurrentPosition();
-                riserMotorPos = riser.getCurrentPosition();
+                rightMotorPos = robot.rightDrive.getCurrentPosition();
+                lefMotorPos = robot.leftDrive.getCurrentPosition();
+                riserMotorPos = robot.pulleyDrive.getCurrentPosition();
 
             }
             /* **************************************************
@@ -257,20 +258,99 @@ public class genericAutonomous extends LinearOpMode {
                 float riserMin = -1;
                 double riserTarget = 0;
 
+                int    clampMaxTime = 500;
+                int    liftMaxTime = 600;
+                int    driveMaxTime = 2000;   //Crude two seconds, eventually use encoders
+                int    driveBackMaxTime = 200;
+                int    driveForwardLittleTime = 1000;
+                int    driveBackLittleTime = 250;
+
                 switch ( CurrentAutoState ) {
-                    case 0: case 2:
-                        //
-                        stageComplete = myDrive.moveForward(startPos,StraightDist[CurrentAutoState], StraightPwr[CurrentAutoState]);
+                    case 0:  //Close clamp on cube
+                        leftClamp_Cmd = robot.LEFTCLAMPED;
+                        rightClamp_Cmd = robot.RIGHTCLAMPED;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > clampMaxTime) {
+                            stageComplete = true;
+                        }
+
                         break;
-                    case 1: case 3:
-                        //stageComplete = myDrive.gyroTurn2(TurnArray[CurrentAutoState], TurnPower[CurrentAutoState]);
+                    case 1:   //Lift cube small amount
+                        riserCmd = riserMax;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > liftMaxTime) {
+                            riserCmd = 0;
+                            stageComplete = true;
+                        }
                         break;
-                    case 4:
-                        stageComplete = detectItem();
+                    case 2:   // Drive forward towards cryptobox
+                        leftDriveCmd = driveMax;
+                        rightDriveCmd = driveMax;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > driveMaxTime) {
+                            leftDriveCmd=0;
+                            rightDriveCmd=0;
+                            stageComplete = true;
+                        }
                         break;
-                    case 5:
-                        stageComplete = moveLever();
+                    case 3:   //Unclamp
+                        leftClamp_Cmd = robot.LEFTUNCLAMPED;
+                        rightClamp_Cmd = robot.RIGHTUNCLAMPED;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > clampMaxTime) {
+                            stageComplete = true;
+                        }
                         break;
+                    case 4:   //Drive backwards a tiny bit
+                        leftDriveCmd = driveMin;
+                        rightDriveCmd = driveMin;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > driveBackMaxTime) {
+                            leftDriveCmd=0;
+                            rightDriveCmd=0;
+                            stageComplete = true;
+                        }
+                        break;
+                    case 5:   // Lower pulley a bit
+                        riserCmd = riserMin;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > liftMaxTime) {
+                            riserCmd = 0;
+                            stageComplete = true;
+                        }
+                        break;
+
+                    /*
+                    case 6:   //Close Clamps
+                        leftClamp_Cmd = robot.LEFTCLAMPED;
+                        rightClamp_Cmd = robot.RIGHTCLAMPED;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > driveBackMaxTime) {
+                            stageComplete = true;
+                        }
+                        break;
+                    case 7:   //Drive forward
+                        leftDriveCmd = driveMax;
+                        rightDriveCmd = driveMax;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > driveForwardLittleTime) {
+                            leftDriveCmd=0;
+                            rightDriveCmd=0;
+                            stageComplete = true;
+                        }
+                        break;
+                    case 8:   //Drive backward
+                        leftDriveCmd = driveMin;
+                        rightDriveCmd = driveMin;
+                        stageTimer += NAVPERIOD;
+                        if (stageTimer > driveBackLittleTime) {
+                            leftDriveCmd=0;
+                            rightDriveCmd=0;
+                            stageComplete = true;
+                        }
+                        //stageComplete = moveLever();
+                        break;
+                        */
                 }
                 if (stageComplete) {
 //                        startPos = currentPos;
@@ -278,6 +358,7 @@ public class genericAutonomous extends LinearOpMode {
                     startPos = 0;
                     startHeading = 0;
                     startTime = CurrentTime;
+                    stageTimer= 0;
                     CurrentAutoState++;
                 }
                 // mapping inputs to servo command
@@ -288,9 +369,9 @@ public class genericAutonomous extends LinearOpMode {
                 // Servo commands: Clipped and Clamped.
 
                 // motor commands: Clipped & clamped.
-                leftDriveCmd  = Range.clip((float)0.0,         driveMin, driveMax);
-                rightDriveCmd = Range.clip((float)0.0,         driveMin, driveMax);
-                riserCmd      = Range.clip((float)riserTarget, riserMin, riserMax);
+                leftDriveCmd  = Range.clip((float)leftDriveCmd,         driveMin, driveMax);
+                rightDriveCmd = Range.clip((float)rightDriveCmd,         driveMin, driveMax);
+                riserCmd      = Range.clip((float)riserCmd, riserMin, riserMax);
             }
             // END NAVIGATION
 
@@ -316,8 +397,8 @@ public class genericAutonomous extends LinearOpMode {
                 LastServo = CurrentTime;
 
                 // Move both servos to new position.
-                leftClamp.setPosition(leftClamp_Cmd);
-                rightClamp.setPosition(rightClamp_Cmd);
+                robot.leftClamp.setPosition(leftClamp_Cmd);
+                robot.rightClamp.setPosition(rightClamp_Cmd);
             }
 
 
@@ -331,13 +412,13 @@ public class genericAutonomous extends LinearOpMode {
                 // Yes, we'll set the power each time, even if it's zero.
                 // this way we don't accidentally leave it somewhere.  Just simpler this way.
                 /*  Left Drive Motor Power  */
-                leftDrive.setPower(leftDriveCmd);
+                robot.leftDrive.setPower(leftDriveCmd);
 
                 /*  Right Drive Motor Power */
-                rightDrive.setPower(rightDriveCmd);
+                robot.rightDrive.setPower(rightDriveCmd);
 
                 /* Lifter Motor Power   */
-                riser.setPower(riserCmd);
+                robot.pulleyDrive.setPower(riserCmd);
             }
 
 
@@ -349,6 +430,8 @@ public class genericAutonomous extends LinearOpMode {
 
             if (CurrentTime - LastTelemetry > TELEMETRYPERIOD) {
                 LastTelemetry = CurrentTime;
+                telemetry.addData("Switch State ", CurrentAutoState);
+                telemetry.addData("Switch Timer ", stageTimer );
                 telemetry.update();
             }
         }
