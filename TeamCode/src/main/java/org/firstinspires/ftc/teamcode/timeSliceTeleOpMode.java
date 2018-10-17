@@ -191,7 +191,7 @@ public class timeSliceTeleOpMode extends LinearOpMode {
         //A Timing System By Katherine Jeffrey,and Alexis
         // long currentThreadTimeMillis (0);
         //
-        int riserZero = robot.pulleyDrive.getCurrentPosition();
+       // int riserZero = robot.pulleyDrive.getCurrentPosition();
 
         // Wait for the game to start (driver presses PLAY)
 
@@ -241,7 +241,7 @@ public class timeSliceTeleOpMode extends LinearOpMode {
                 //    ONLY set the motors in motion in ONE place.
                 rightMotorPos = robot.rightDrive.getCurrentPosition();
                 lefMotorPos   = robot.leftDrive.getCurrentPosition();
-                riserMotorPos = robot.pulleyDrive.getCurrentPosition();
+               // riserMotorPos = robot.pulleyDrive.getCurrentPosition();
 
             }
             /* **************************************************
@@ -470,8 +470,8 @@ public class timeSliceTeleOpMode extends LinearOpMode {
                     LastServo = CurrentTime;
 
                     // Move both servos to new position.
-                    robot.leftClamp.setPosition(leftClamp_Cmd);
-                    robot.rightClamp.setPosition(rightClamp_Cmd);
+                   // robot.leftClamp.setPosition(leftClamp_Cmd);
+                   // robot.rightClamp.setPosition(rightClamp_Cmd);
                 }
 
 
@@ -493,11 +493,11 @@ public class timeSliceTeleOpMode extends LinearOpMode {
                     robot.rightDrive.setPower(-1*leftDriveCmd);
 
                     /* Lifter Motor Power   */
-                    robot.pulleyDrive.setPower(riserCmd);
+                   // robot.pulleyDrive.setPower(riserCmd);
                 }
 
 
-            /* ***************************************************
+            /* ***************************************************.
              *                TELEMETRY
              *       Inputs:  telemetry structure
              *       Outputs: command telemetry output to phone
@@ -519,7 +519,7 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
 
         //SAFE EXIT OF RUN OPMODE, stop motors, leave servos????
-        robot.pulleyDrive.setPower(0);
+      //  robot.pulleyDrive.setPower(0);
         robot.leftDrive.setPower(0);
         robot.rightDrive.setPower(0);
     }
