@@ -7,15 +7,23 @@ package org.firstinspires.ftc.teamcode;
  *
  * First Coding by Jeffrey and Alexis
  *
- *Editing by Tarun and Jacob
+ * Editing for the 2018-2019 season by Tarun and Jacob
  *
  */
 
+import android.os.SystemClock;
+
+import com.qualcomm.hardware.ams.AMSColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.NextLock;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
@@ -47,6 +55,7 @@ public class KP_Driver_Mecanum extends LinearOpMode {
     int rightMotorPos;
     int leftMotorPos;
     int mineralfrontMotorPos;
+    int encodeflipMotorPos;
     int prevRiserErr = 0;
 
     //double position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
@@ -102,7 +111,7 @@ public class KP_Driver_Mecanum extends LinearOpMode {
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
-        botMotors mDrive = new botMotors();
+        //botMotors mDrive = new botMotors();
         long CurrentTime = System.currentTimeMillis();
 
         long LastSensor = CurrentTime;
@@ -165,6 +174,7 @@ public class KP_Driver_Mecanum extends LinearOpMode {
         float leftRearCrab = 0;
         float rightRearCrab = 0;
         float mineralfrontCmd = 0;
+        float encodeflipCmd = 0;
 
         float turtleScaler = 1;  //Initially full power
         float turtleSpeed = 4;  // Divider
@@ -223,10 +233,11 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here  Not currently using data, invalid
                 //    ONLY set the motors in motion in ONE place.
-                mineralfrontMotorPos = robot.mineralfront.getCurrentPosition();
-                rightMotorPos = robot.rightDrive.getCurrentPosition();
-                leftMotorPos = robot.leftDrive.getCurrentPosition();
-                //  riserMotorPos = robot.pulleyDrive.getCurrentPosition();
+              //  mineralfrontMotorPos = robot.mineralfront.getCurrentPosition();
+              //  rightMotorPos = robot.rightDrive.getCurrentPosition();
+              //  leftMotorPos = robot.leftDrive.getCurrentPosition();
+                encodeflipMotorPos = robot.encodeflip.getCurrentPosition();
+                //  riserotorPos = robot.pulleyDrive.getCurrentPosition();
 
             }
             /* **************************************************
@@ -313,7 +324,6 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                     float driveMax = 1;
                     float driveMin = -1;
 
-
                     leftDriveCmd = 0;
                     rightDriveCmd = 0;
                     leftRearCmd = 0;
@@ -322,18 +332,77 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                     rightDriveCrab = 0;
                     leftRearCrab = 0;
                     rightRearCrab = 0;
+
+                    // ********************************
                     //Motor to take in minerals. mineralfront
-                    if (g2_LT > 0.15)  {
-                        robot.mineralfront.setPower(-0.75);
-                        ;
+                    if (g2_LT > 0.15) {
+                        mineralfrontCmd = (float) (-0.75);
+                    } else if (g2_RT > 0.15) {
+                        mineralfrontCmd = (float) (0.75);
+                    } else {
+                        mineralfrontCmd = (float) (0);
+                        mineralfrontCmd = Range.clip(mineralfrontCmd, (float) driveMin, (float) driveMax);
+                    }
+                    // End of Mineral Motor Commands
+                    // ********************************
+
+                    //Encoded lift Commands
+                    //*********************************
+                    //robot.encodeflip.setTargetPosition(0);
+                    /*
+                    //This code is what ran an infinite loop, but so does the current code.
+
+                       robot.encodeflip.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                       robot.encodeflip.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                       robot.encodeflip.setTargetPosition(+1680);
+                       robot.encodeflip.setPower(.5);
+
+                       while ((robot.encodeflip.isBusy()) &&opModeIsActive() )  {
+
+                       }
+                       robot.encodeflip.setPower(0);
+                    */
+                    if (g2_RB == true) {
+                        robot.encodeflip2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        robot.encodeflip2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        robot.encodeflip2.setDirection(DcMotorSimple.Direction.FORWARD);
+                        robot.encodeflip2.setTargetPosition(1000);
+                        robot.encodeflip2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        robot.encodeflip2.setPower(.5);
+                        while (robot.encodeflip2.isBusy() && opModeIsActive()) {
+                            telemetry.addData("counts  ", robot.encodeflip2.getCurrentPosition());
+                            telemetry.update();
+
+                        }
                     }
 
-                    else if (g2_RT > 0.15) {
-                        robot.mineralfront.setPower(0.75);
-                    }
-                    else  { robot.mineralfront.setPower(0);
 
+
+
+                    if (g2_LB == true)  {
+                            robot.encodeflip2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            robot.encodeflip2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            robot.encodeflip2.setDirection(DcMotorSimple.Direction.FORWARD);
+                            robot.encodeflip2.setTargetPosition(1000);
+                            robot.encodeflip2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            robot.encodeflip2.setPower(.5);
+                            while (robot.encodeflip2.isBusy() && opModeIsActive()) {
+                                telemetry.addData("counts  ", robot.encodeflip2.getCurrentPosition());
+                                telemetry.update();
+
+
+                        }
                     }
+
+
+                    else {
+                            robot.encodeflip2.setPower(0);
+                        }
+
+
+                    encodeflipCmd = Range.clip(encodeflipCmd,(float)driveMin, (float)driveMax);
+                   //End of Encoded Lift Commands
+
 
 
                     if (Math.abs(g1_LeftX) < g1_X_Threshold) {
@@ -409,13 +478,13 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                         // this way we don't accidentally leave it somewhere.  Just simpler this way.
                     /*  Left Drive Motor Power  */
                         //robot.leftDrive.setPower(leftDriveCmd);
-                        robot.leftDrive.setPower(-1 * (leftDriveCmd + leftDriveCrab) / turtleScaler);
-                        robot.rightDrive.setPower(-1 * (rightDriveCmd + rightDriveCrab) / turtleScaler);
-                        robot.leftRear.setPower(-1 * (leftRearCmd + leftRearCrab) / turtleScaler);
-                        robot.mineralfront.setPower(-1);
+                       // robot.leftDrive.setPower(-1 * (leftDriveCmd + leftDriveCrab) / turtleScaler);
+                       // robot.rightDrive.setPower(-1 * (rightDriveCmd + rightDriveCrab) / turtleScaler);
+                      //  robot.leftRear.setPower(-1 * (leftRearCmd + leftRearCrab) / turtleScaler);
+                      //  robot.rightRear.setPower(-1 * (rightRearCmd + rightRearCrab) / turtleScaler);
 
-                        //Why does this need a negative ????  Should not
-                        robot.rightRear.setPower(-1 * (rightRearCmd + rightRearCrab) / turtleScaler);
+                        // mineral motor power set
+                        //robot.mineralfront.setPower(mineralfrontCmd);
 
                     /* Lifter Motor Power   */
                         //   robot.pulleyDrive.setPower(riserCmd);
@@ -434,22 +503,23 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("Left Motor Power     ", -1 * (leftDriveCmd + leftDriveCrab) / turtleScaler);
-                telemetry.addData("Right Motor Power    ", -1 * (rightDriveCmd + rightDriveCrab) / turtleScaler);
-                telemetry.addData("Left Rear Power     ", -1 * (leftRearCmd + leftRearCrab) / turtleScaler);
-                telemetry.addData("Right Rear Power    ", -1 * -1 * (rightRearCmd + rightRearCrab) / turtleScaler);
-                telemetry.addData("mineralfroont Power ", -1 * -1);
+                //telemetry.addData("Left Motor Power     ", -1 * (leftDriveCmd + leftDriveCrab) / turtleScaler);
+                //telemetry.addData("Right Motor Power    ", -1 * (rightDriveCmd + rightDriveCrab) / turtleScaler);
+                //telemetry.addData("Left Rear Power     ", -1 * (leftRearCmd + leftRearCrab) / turtleScaler);
+                //telemetry.addData("Right Rear Power    ", -1 * -1 * (rightRearCmd + rightRearCrab) / turtleScaler);
+                //telemetry.addData("mineralfront Power ", -1 * -1);
+                telemetry.addData("motor position ", robot.encodeflip.getTargetPosition());
                 telemetry.update();
             }
 
 
             //SAFE EXIT OF RUN OPMODE, stop motors, leave servos????
             // robot.pulleyDrive.setPower(0);
-            robot.leftDrive.setPower(0);
-            robot.rightDrive.setPower(0);
-            robot.leftRear.setPower(0);
-            robot.rightRear.setPower(0);
-            robot.mineralfront.setPower(0);
+            //robot.leftDrive.setPower(0);
+            //robot.rightDrive.setPower(0);
+            //robot.leftRear.setPower(0);
+            //robot.rightRear.setPower(0);
+           // robot.mineralfront.setPower(0);
         }
     }
 }

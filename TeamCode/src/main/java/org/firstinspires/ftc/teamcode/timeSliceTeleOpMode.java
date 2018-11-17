@@ -239,8 +239,8 @@ public class timeSliceTeleOpMode extends LinearOpMode {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here  Not currently using data, invalid
                 //    ONLY set the motors in motion in ONE place.
-                rightMotorPos = robot.rightDrive.getCurrentPosition();
-                lefMotorPos   = robot.leftDrive.getCurrentPosition();
+              //  rightMotorPos = robot.rightDrive.getCurrentPosition();
+               // lefMotorPos   = robot.leftDrive.getCurrentPosition();
                // riserMotorPos = robot.pulleyDrive.getCurrentPosition();
 
             }
@@ -461,11 +461,11 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
 
             /* **************************************************
-             *                SERVO OUTPUT
+              *                SERVO OUTPUT
              *                Inputs: leftClamp position command
              *                        rightClamp position command *
              *                Outputs: Physical write to servo interface.
-             ****************************************************/
+              ****************************************************/
                 if (CurrentTime - LastServo > SERVOPERIOD) {
                     LastServo = CurrentTime;
 
@@ -486,11 +486,11 @@ public class timeSliceTeleOpMode extends LinearOpMode {
                     // this way we don't accidentally leave it somewhere.  Just simpler this way.
                     /*  Left Drive Motor Power  */
                     //robot.leftDrive.setPower(leftDriveCmd);
-                    robot.leftDrive.setPower(-1*rightDriveCmd);
+                  //  robot.leftDrive.setPower(-1*rightDriveCmd);
 
                     /*  Right Drive Motor Power */
                     // robot.rightDrive.setPower(rightDriveCmd);
-                    robot.rightDrive.setPower(-1*leftDriveCmd);
+                  //  robot.rightDrive.setPower(-1*leftDriveCmd);
 
                     /* Lifter Motor Power   */
                    // robot.pulleyDrive.setPower(riserCmd);
@@ -520,7 +520,7 @@ public class timeSliceTeleOpMode extends LinearOpMode {
 
         //SAFE EXIT OF RUN OPMODE, stop motors, leave servos????
       //  robot.pulleyDrive.setPower(0);
-        robot.leftDrive.setPower(0);
-        robot.rightDrive.setPower(0);
+        //robot.leftDrive.setPower(0);
+       // robot.rightDrive.setPower(0);
     }
 }

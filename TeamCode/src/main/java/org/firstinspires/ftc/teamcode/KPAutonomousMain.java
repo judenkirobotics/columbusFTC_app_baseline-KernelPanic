@@ -223,8 +223,8 @@ public class KPAutonomousMain extends LinearOpMode {
                 LastEncoderRead = CurrentTime;
                 // We want to READ the Encoders here
                 //    ONLY set the motors in motion in ONE place.
-                rightMotorPos = robot.rightDrive.getCurrentPosition();
-                lefMotorPos = robot.leftDrive.getCurrentPosition();
+              //  rightMotorPos = robot.rightDrive.getCurrentPosition();
+              //  lefMotorPos = robot.leftDrive.getCurrentPosition();
               //  riserMotorPos = robot.pulleyDrive.getCurrentPosition();
 
             }
@@ -361,16 +361,16 @@ public class KPAutonomousMain extends LinearOpMode {
                 // Yes, we'll set the power each time, even if it's zero.
                 // this way we don't accidentally leave it somewhere.  Just simpler this way.
                 /*  Left Drive Motor Power  */
-                robot.leftDrive.setPower(leftDriveCmd);
+              //  robot.leftDrive.setPower(leftDriveCmd);
 
                 /*  Left Rear Motor Power  */
-                robot.leftRear.setPower(leftRearCmd);
+              //  robot.leftRear.setPower(leftRearCmd);
 
                 /*  Right Drive Motor Power */
-                robot.rightDrive.setPower(rightDriveCmd);
+             //   robot.rightDrive.setPower(rightDriveCmd);
 
                 /*Right Rear Motor Power*/
-                robot.rightRear.setPower(rightRearCmd);
+             //   robot.rightRear.setPower(rightRearCmd);
 
             }
 
