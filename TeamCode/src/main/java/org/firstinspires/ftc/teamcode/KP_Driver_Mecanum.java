@@ -363,13 +363,13 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                        robot.encodeflip.setPower(0);
                     */
                     if (g2_RB == true) {
-                        robot.encodeflip2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        robot.encodeflip2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                        robot.encodeflip2.setDirection(DcMotorSimple.Direction.FORWARD);
-                        robot.encodeflip2.setTargetPosition(1000);
-                        robot.encodeflip2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        robot.encodeflip2.setPower(.5);
-                        while (robot.encodeflip2.isBusy() && opModeIsActive()) {
+                        robot.encodeflip.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        robot.encodeflip.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        robot.encodeflip.setDirection(DcMotorSimple.Direction.FORWARD);
+                        robot.encodeflip.setTargetPosition(1000);
+                        robot.encodeflip.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        robot.encodeflip.setPower(.5);
+                        while (robot.encodeflip.isBusy() && opModeIsActive()) {
                             telemetry.addData("counts  ", robot.encodeflip2.getCurrentPosition());
                             telemetry.update();
 
@@ -387,7 +387,7 @@ public class KP_Driver_Mecanum extends LinearOpMode {
                             robot.encodeflip2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             robot.encodeflip2.setPower(.5);
                             while (robot.encodeflip2.isBusy() && opModeIsActive()) {
-                                telemetry.addData("counts  ", robot.encodeflip2.getCurrentPosition());
+                                telemetry.addData("counts#2  ", robot.encodeflip2.getCurrentPosition());
                                 telemetry.update();
 
 
