@@ -6,8 +6,8 @@ package org.firstinspires.ftc.teamcode;
  * Concept by Howard
  *
  * First Coding by Jeffrey and Alexis
-*
- * Edited for the 2019 season by Tarun and Jacob
+ *
+ * Modified for the 2019 season by Tarun
  *
  */
 
@@ -15,6 +15,7 @@ package org.firstinspires.ftc.teamcode;
         import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
         import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
         import com.qualcomm.robotcore.hardware.DcMotor;
+        import com.qualcomm.robotcore.hardware.DcMotorSimple;
         import com.qualcomm.robotcore.hardware.Servo;
         import com.qualcomm.robotcore.util.ElapsedTime;
         import com.qualcomm.robotcore.util.Range;
@@ -37,11 +38,11 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 //@Autonomous(name="Pushbot: Auto Drive By Encoder", group="Pushbot")
 
-@Autonomous(name="Autonomous RED", group="Pushbot")
+@Autonomous(name="Autonomous DepotSide", group="Pushbot")
 @SuppressWarnings("WeakerAccess")
 //@TeleOp(name = "Time Slice Op Mode", group = "HardwarePushbot")
 //@Disabled
-public class KPAutonomousMain extends LinearOpMode {
+public class KPAutonomousDepot extends LinearOpMode {
     //
     //Encoder enc;
     //enc = new Encoder(0,1,false,Encoder.EncodingType.k4X);
@@ -163,8 +164,8 @@ public class KPAutonomousMain extends LinearOpMode {
         //                    0    1     2   3     4    5    6   7
         int FWD = 2;
         int CRAB = 3;
-        //int[] thisStage =   {BL, CLM, LFT, FWD, CRB, FWD, CLM, FWD}
-        double[] timeLimit = {100,  500, 600, 750, 750, 600, 500, 300, 30000};
+        //int[] thisStage =   {lower, FWD, Drop, Right, FWD, Cross, CLM, FWD}
+        double[] timeLimit = {10000,  500, 600, 750, 750, 600, 500, 300, 30000};
         //int[] TurnArray =    {0,   45,   0,   2,   0,   0,   0,   0};
         //int[] TurnPower =    {0,   40,   0, -30,   0,  0,   0,   0};
         //float[] StraightPwr= {0,    0,  30,   0,   0,  0,   0,   0};
@@ -175,6 +176,7 @@ public class KPAutonomousMain extends LinearOpMode {
         int    driveBackMaxTime = 200;
         int    driveForwardLittleTime = 1000;
         int    driveBackLittleTime = 250;
+
 
         boolean g1_A;
         //boolean g1_B;
@@ -257,45 +259,63 @@ public class KPAutonomousMain extends LinearOpMode {
                // stageTimer += NAVPERIOD;
 
                 switch ( currState) {
-                    case 0: // move the ball
+                    case 0: // Lower robot
+                        //robot.lift.setTargetPosition();
+                        if (robot.lift.isBusy() != true) {
+                            robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            robot.lift.setDirection(DcMotorSimple.Direction.FORWARD);
+                            robot.lift.setTargetPosition(1000);
+                            robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            robot.lift.setPower(.5);
+                        }
                         break;
-                    case 1:  //Close clamp on cube
-                        leftDriveCmd=(float)0.5;
-                        rightDriveCmd=(float)0.5;
-                        leftRearCmd=(float)0.5;
-                        rightRearCmd=(float)0.5;
+                    case 1:  // Unlatch
+                        robot.latchlift.setPosition(1.0);
                         break;
-                    case 2:   //Lift cube small amount
+                    case 2:// Drive Forward to depot
+                        leftDriveCmd = (float)0.50;
+                        rightDriveCmd = (float)0.50;
+                        leftRearCmd = (float)0.50;
+                        rightRearCmd = (float)0.50;
+
                         break;
-                    case 3:   // Drive forward towards cryptobox
-                        leftDriveCmd = driveMax;
-                        rightDriveCmd = driveMax;
-                        leftRearCmd = driveMax;
-                        rightRearCmd = driveMax;
+                    case 3:   // Drop Marker
+                    /*    if (robot.encodeflip2.isBusy() != true) {
+                            robot.encodeflip2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            robot.encodeflip2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            robot.encodeflip2.setDirection(DcMotorSimple.Direction.FORWARD);
+                            robot.encodeflip2.setTargetPosition(1000);
+                            robot.encodeflip2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            robot.encodeflip2.setPower(.5);
+                        }
+                    */
                         break;
-                    case 4: // crab .. left for red, right for blue
-                        leftDriveCmd = (float)-1*driveMax;
-                        rightDriveCmd = driveMax;
-                        leftRearCmd = driveMax;
-                        rightRearCmd = (float)-1*driveMax;
+                    case 4: // Turn
+                        leftDriveCmd = (float)0.50;
+                        rightDriveCmd = (float)-0.50;
+                        leftRearCmd = (float)0.50;
+                        rightRearCmd = (float)-0.50;
                         break;
-                    case 5: // fwd
+                    case 5: // forward to crater
                         leftDriveCmd = (float)0.50;
                         rightDriveCmd = (float)0.50;
                         leftRearCmd = (float)0.50;
                         rightRearCmd = (float)0.50;
                         break;
-                    case 6: // unclamp
-
+                    case 6: // slide into crater
+                        if (robot.slide.isBusy() != true) {
+                            robot.slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            robot.slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            robot.slide.setDirection(DcMotorSimple.Direction.FORWARD);
+                            robot.slide.setTargetPosition(1000);
+                            robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            robot.slide.setPower(.5);
+                        }
                         break;
-                    case 7: //reverse
-                        leftDriveCmd = (float)-0.50;
-                        rightDriveCmd = (float)-0.50;
-                        leftRearCmd = (float)-0.50;
-                        rightRearCmd = (float)-0.50;
+                    case 7: // 7
                         break;
-                    case 8: // do nothing
-                     //   stageTimer= 0;
+                    case 8: // 8
 
                         break;
                     default:
