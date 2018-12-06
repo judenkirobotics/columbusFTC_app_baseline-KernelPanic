@@ -36,7 +36,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 //@Autonomous(name="Time Slice Op Mode 1", group="Pushbot")
 @SuppressWarnings("WeakerAccess")
-@TeleOp(name = "Time Slice Op Mode 1", group = "HardwarePushbot")
+//@TeleOp(name = "Time Slice Op Mode 1", group = "HardwarePushbot")
 //@Disabled
 public class timeSliceTeleOpMode extends LinearOpMode {
     //Encoder enc;
